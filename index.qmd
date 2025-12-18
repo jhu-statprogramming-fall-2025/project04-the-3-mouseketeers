@@ -1,0 +1,24 @@
+---
+title: "Home"
+---
+
+## What this site is
+This website hosts our final project dashboard (DCLP3 glycemic control prediction), including:
+
+- Cohort-level summaries
+- Patient-level exploration
+- ML model results (AUC)
+- Downloadable / viewable tables
+
+## How to regenerate
+1. Run the pipeline locally (creates `output/tables/` outputs and `output/figures/`).
+2. Render the website:
+   - `quarto render`
+3. Commit/push the `docs/` folder for GitHub Pages.
+
+## Made by The Three Mouseketeers
+3 Full-time MPHers
+
+- Connor Moore
+- Eimee Co
+- Jin-sung Sur

@@ -1,0 +1,6 @@
+/.quarto/
+**/*.quarto_ipynb
+
+# Block all files in data/raw directory
+/data/raw/
+/data/raw/**

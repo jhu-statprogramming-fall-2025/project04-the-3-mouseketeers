@@ -1,0 +1,209 @@
+---
+title: "Patient Explorer"
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: false
+page-layout: full
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(here)
+library(readr)
+library(dplyr)
+library(plotly)
+library(DT)
+library(crosstalk)
+library(stringr)
+
+read_csv_any <- function(filename) {
+  candidates <- c(
+    here("output","tables", filename),
+    here("data","csv", filename),
+    file.path("output","tables", filename),
+    file.path("data","csv", filename)
+  )
+  hit <- candidates[file.exists(candidates)][1]
+  if (is.na(hit)) stop("Missing file: ", filename, "\nTried:\n- ", paste(candidates, collapse = "\n- "))
+  read_csv(hit, show_col_types = FALSE)
+}
+
+x_start <- as.Date("2017-08-01")
+x_end   <- as.Date("2019-04-30")
+
+daily <- read_csv_any("daily_tdd_by_patient.csv") %>%
+  mutate(
+    PtID = as.character(PtID),
+    Date = as.character(Date),
+    Date = if_else(is.na(Date), NA_character_, substr(Date, 1, 10)),
+    Date = as.Date(Date),
+    tdd  = suppressWarnings(as.numeric(tdd))
+  ) %>%
+  filter(!is.na(Date), Date >= x_start, Date <= x_end)
+
+if (!all(c("PtID","Date","tdd") %in% names(daily))) {
+  stop("daily_tdd_by_patient.csv must contain PtID, Date, and tdd.")
+}
+
+tdd_sum <- read_csv_any("tdd_summary_by_patient.csv") %>%
+  mutate(PtID = as.character(PtID))
+
+pump <- read_csv_any("combined_patient_data.csv") %>%
+  mutate(PtID = as.character(PtID))
+
+cgm <- tryCatch(
+  read_csv_any("cgm_txt_summary_by_patient.csv"),
+  error = function(e) read_csv_any("cgm_summary_by_patient.csv")
+) %>% mutate(PtID = as.character(PtID))
+
+pump_add <- pump %>%
+  select(any_of(c(
+    "PtID",
+    "AgeAtEnrollment","Gender","Ethnicity","Race","DiagAge","DiagAgeApprox",
+    "Weight_kg","Height_cm","BMI","BldPrSys","BldPrDia",
+    "EducationLevel","AnnualIncome","InsuranceType",
+    "HbA1c_Screening","NumMedicalConditions","NumMedications",
+    "TDD_per_kg","TDD_per_BMI"
+  )))
+
+cgm_add <- cgm %>%
+  select(any_of(c(
+    "PtID",
+    "glucose_mean","glucose_median","glucose_sd","glucose_cv",
+    "pct_70_180","pct_below_70","pct_above_180","pct_above_250"
+  )))
+
+feat <- tdd_sum %>%
+  left_join(pump_add, by = "PtID") %>%
+  left_join(cgm_add,  by = "PtID") %>%
+  mutate(
+    basal_to_bolus_ratio = if_else(
+      !is.na(basal_pct) & !is.na(bolus_pct) & bolus_pct > 0,
+      basal_pct / bolus_pct,
+      NA_real_
+    )
+  ) %>%
+  group_by(PtID) %>%
+  summarise(across(everything(), ~ dplyr::first(.)), .groups = "drop")
+
+feat <- feat %>%
+  mutate(PtID_num = suppressWarnings(as.integer(PtID))) %>%
+  arrange(if_else(is.na(PtID_num), 999999L, PtID_num), PtID) %>%
+  select(-PtID_num)
+
+daily <- daily %>%
+  mutate(PtID_num = suppressWarnings(as.integer(PtID))) %>%
+  arrange(if_else(is.na(PtID_num), 999999L, PtID_num), PtID, Date) %>%
+  select(-PtID_num)
+
+pretty_name <- function(x) {
+  if (x == "PtID") return("Patient ID")
+  if (x == "AgeAtEnrollment") return("Age at enrollment")
+  if (x == "DiagAge") return("Diagnosis age")
+  if (x == "Weight_kg") return("Weight (kg)")
+  if (x == "Height_cm") return("Height (cm)")
+  if (x == "BMI") return("BMI")
+  if (x == "BldPrSys") return("Systolic BP")
+  if (x == "BldPrDia") return("Diastolic BP")
+  if (x == "HbA1c_Screening") return("HbA1c (screening)")
+  if (x == "NumMedicalConditions") return("# Medical conditions")
+  if (x == "NumMedications") return("# Medications")
+  if (x == "pct_70_180") return("TIR 70–180 (%)")
+  if (x == "pct_below_70") return("Time < 70 (%)")
+  if (x == "pct_above_180") return("Time > 180 (%)")
+  if (x == "pct_above_250") return("Time > 250 (%)")
+  if (x == "TDD_per_kg") return("TDD per kg")
+  if (x == "TDD_per_BMI") return("TDD per BMI")
+  if (x == "tdd_mean") return("TDD mean (U/day)")
+  if (x == "tdd_median") return("TDD median (U/day)")
+  if (x == "tdd_sd") return("TDD SD (U/day)")
+  if (x == "tdd_cv") return("TDD CV (%)")
+  if (x == "basal_pct") return("Basal (% of TDD)")
+  if (x == "bolus_pct") return("Bolus (% of TDD)")
+  if (x == "mean_boluses_per_day") return("Boluses per day (mean)")
+  if (x == "basal_to_bolus_ratio") return("Basal/Bolus ratio")
+  x %>%
+    str_replace_all("_", " ") %>%
+    str_replace_all("\\s+", " ") %>%
+    str_trim() %>%
+    str_to_title()
+}
+
+feat_disp <- feat %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+
+# Force numeric-sorted PtID dropdown
+pt_levels <- feat %>%
+  distinct(PtID) %>%
+  mutate(PtID_num = suppressWarnings(as.integer(PtID))) %>%
+  arrange(if_else(is.na(PtID_num), 999999L, PtID_num), PtID) %>%
+  pull(PtID)
+
+feat_disp <- feat_disp %>%
+  mutate(PtID_select = factor(PtID, levels = pt_levels))
+
+daily <- daily %>%
+  mutate(PtID_select = factor(PtID, levels = pt_levels))
+
+col_labels <- unname(vapply(names(feat_disp), pretty_name, character(1)))
+
+sd_feat  <- SharedData$new(feat_disp, key = ~PtID, group = "pt")
+sd_daily <- SharedData$new(daily,     key = ~PtID, group = "pt")
+```
+
+```{r}
+#| echo: false
+crosstalk::filter_select(
+  id = "pt_select",
+  label = "Patient selection (default = All patients)",
+  sharedData = sd_feat,
+  group = ~PtID_select,
+  multiple = FALSE
+)
+```
+
+## Daily TDD (time series)
+```{r}
+#| echo: false
+plot_ly(
+  sd_daily,
+  x = ~Date,
+  y = ~tdd,
+  split = ~PtID,
+  type = "scatter",
+  mode = "lines",
+  connectgaps = FALSE,
+  line = list(width = 1),
+  hovertemplate = paste(
+    "<b>Patient</b>: %{customdata}<br>",
+    "<b>Date</b>: %{x|%Y-%m-%d}<br>",
+    "<b>TDD</b>: %{y:.2f}<extra></extra>"
+  ),
+  customdata = ~PtID
+) %>%
+layout(
+  title = "Daily Total Daily Dose (TDD)",
+  xaxis = list(title = "Date", type = "date", autorange = TRUE),
+  yaxis = list(title = "TDD (units/day)", rangemode = "tozero", autorange = TRUE),
+  showlegend = FALSE,
+  margin = list(t = 60)
+)
+```
+
+## Patient summary table (all variables except daily TDD)
+```{r}
+#| echo: false
+DT::datatable(
+  sd_feat,
+  rownames = FALSE,
+  colnames = col_labels,
+  options = list(
+    pageLength = 10,
+    scrollX = TRUE,
+    dom = "tip"
+  )
+)
+```

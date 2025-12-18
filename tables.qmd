@@ -1,0 +1,89 @@
+---
+title: "Data Tables"
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(here)
+library(readr)
+library(DT)
+
+read_csv_any <- function(filename) {
+  candidates <- c(
+    here("output","tables", filename),
+    here("data","csv", filename)
+  )
+  hit <- candidates[file.exists(candidates)][1]
+  if (is.na(hit)) stop("Missing file: ", filename)
+  read_csv(hit, show_col_types = FALSE)
+}
+
+pretty_names <- function(nms) {
+  out <- nms
+  out <- gsub("^PtID$", "Patient ID", out)
+  out <- gsub("^AgeAtEnrollment$", "Age at enrollment", out)
+  out <- gsub("^HbA1c_Screening$", "HbA1c (screening)", out)
+  out <- gsub("^HbA1cTestDt$", "HbA1c test date", out)
+  out <- gsub("^BldPrSys$", "BP (systolic)", out)
+  out <- gsub("^BldPrDia$", "BP (diastolic)", out)
+  out <- gsub("^pct_70_180$", "TIR 70–180 (%)", out)
+
+  out <- gsub("_", " ", out)
+  out <- gsub("([a-z])([A-Z])", "\\1 \\2", out)
+  out <- tools::toTitleCase(tolower(out))
+  out <- gsub("Cgm", "CGM", out)
+  out <- gsub("Tdd", "TDD", out)
+  out <- gsub("Bmi", "BMI", out)
+  out <- gsub("Hba1c", "HbA1c", out)
+  out <- gsub("\\bIqr\\b", "IQR", out)
+  out <- gsub("\\bSd\\b", "SD", out)
+  out <- gsub("\\bCv\\b", "CV", out)
+  out
+}
+
+demo <- read_csv_any("patient_demographics.csv")
+cgm  <- read_csv_any("cgm_txt_summary_by_patient.csv")
+tdd  <- read_csv_any("tdd_summary_by_patient.csv")
+pump <- read_csv_any("combined_patient_data.csv")
+
+names(demo) <- pretty_names(names(demo))
+names(cgm)  <- pretty_names(names(cgm))
+names(tdd)  <- pretty_names(names(tdd))
+names(pump) <- pretty_names(names(pump))
+
+dt_opts <- list(pageLength = 20, scrollX = TRUE, autoWidth = TRUE)
+```
+
+## Patient demographics
+
+```{r}
+#| echo: false
+DT::datatable(demo, rownames = FALSE, options = dt_opts)
+```
+
+## CGM summary (cgm.txt)
+
+```{r}
+#| echo: false
+DT::datatable(cgm, rownames = FALSE, options = dt_opts)
+```
+
+## TDD summary
+
+```{r}
+#| echo: false
+DT::datatable(tdd, rownames = FALSE, options = dt_opts)
+```
+
+## Combined patient table
+
+```{r}
+#| echo: false
+DT::datatable(pump, rownames = FALSE, options = dt_opts)
+```

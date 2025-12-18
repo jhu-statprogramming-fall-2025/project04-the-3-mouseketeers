@@ -1,0 +1,75 @@
+:root{
+  --panel-bg: #ffffff;
+  --page-bg: #f6f7fb;
+  --border: #e5e7eb;
+  --shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+body{
+  background: var(--page-bg);
+  font-size: 16px;
+}
+
+main.content{
+  padding-top: 0.5rem;
+}
+
+/* Hide redundant Quarto dashboard header (removes extra dashboard bar) */
+#quarto-dashboard-header{
+  display: none !important;
+}
+
+/* Global responsive images */
+img{
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+
+/* DataTables: card + uniform row height (no wrap) */
+div.dataTables_wrapper{
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+table.dataTable td, table.dataTable th{
+  white-space: nowrap !important;
+}
+table.dataTable td{
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* BIG ROC layout: stack vertically, 1.5x bigger feel */
+.roc-big figure{
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+  margin: 0 0 18px 0;
+}
+
+/* Make ROC images much taller on screen */
+.roc-big img{
+  width: 100%;
+  max-height: 1100px;
+  object-fit: contain;
+}
+
+/* Captions readable */
+.roc-big figcaption{
+  text-align: center;
+  margin-top: 10px;
+  color: #111827;
+  font-size: 1.10rem;
+  font-weight: 700;
+}

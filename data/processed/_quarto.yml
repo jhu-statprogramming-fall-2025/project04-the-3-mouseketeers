@@ -1,0 +1,42 @@
+project:
+  type: website
+  output-dir: docs
+
+  # Render ONLY these pages (so archive drafts won't run)
+  render:
+    - index.qmd
+    - overview.qmd
+    - patient-explorer.qmd
+    - models.qmd
+    - tables.qmd
+
+  # Copy these into docs/ so images/styles work on GitHub Pages
+  resources:
+    - styles.css
+    - output/figures/**
+
+website:
+  title: "DCLP3 Glycemic Dashboard"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: overview.qmd
+        text: Overview
+      - href: patient-explorer.qmd
+        text: Patient Explorer
+      - href: models.qmd
+        text: Models
+      - href: tables.qmd
+        text: Data Tables
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    code-fold: true
+
+execute:
+  warning: false
+  message: false

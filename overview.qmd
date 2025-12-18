@@ -1,0 +1,115 @@
+---
+title: "Overview"
+format:
+  dashboard:
+    theme: cosmo
+    css: styles.css
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(here)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(DT)
+
+read_csv_any <- function(filename) {
+  candidates <- c(
+    here("output","tables", filename),
+    here("data","csv", filename)
+  )
+  hit <- candidates[file.exists(candidates)][1]
+  if (is.na(hit)) stop("Missing file: ", filename)
+  read_csv(hit, show_col_types = FALSE)
+}
+
+pump <- read_csv_any("combined_patient_data.csv")
+ml   <- read_csv_any("ml_metrics_pump.csv")
+
+n_pump <- nrow(pump)
+
+mean_tir <- if ("pct_70_180" %in% names(pump)) mean(pump$pct_70_180, na.rm = TRUE) else NA_real_
+median_tir <- if ("pct_70_180" %in% names(pump)) median(pump$pct_70_180, na.rm = TRUE) else NA_real_
+pct_uncontrolled <- if ("pct_70_180" %in% names(pump)) mean(pump$pct_70_180 < 70, na.rm = TRUE) * 100 else NA_real_
+
+mean_hba1c <- if ("HbA1c_Screening" %in% names(pump)) mean(pump$HbA1c_Screening, na.rm = TRUE) else NA_real_
+mean_tdd <- if ("tdd_mean" %in% names(pump)) mean(pump$tdd_mean, na.rm = TRUE) else NA_real_
+
+theme_dash <- theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "#4b5563")
+  )
+```
+
+# Overview
+
+## Row {height=25%}
+
+### Cohort Snapshot
+
+**Pump cohort N:** `r n_pump`  
+**Mean TIR (70–180):** `r round(mean_tir, 1)`%  
+**Median TIR (70–180):** `r round(median_tir, 1)`%  
+**% Uncontrolled (TIR < 70):** `r round(pct_uncontrolled, 1)`%  
+**Mean HbA1c (screening):** `r round(mean_hba1c, 2)`  
+**Mean TDD (units/day):** `r round(mean_tdd, 1)`
+
+### Pump Cohort Metrics (summary)
+```{r}
+#| echo: false
+ml_show <- ml %>%
+  mutate(
+    Model = dplyr::recode(model,
+      "no_insulin" = "No-insulin baseline",
+      "full"       = "Full model",
+      .default     = model
+    ),
+    `Train N` = n_train,
+    `Test N`  = n_test,
+    `Accuracy (%)` = round(accuracy_pct, 1),
+    AUC = round(auc, 3)
+  ) %>%
+  arrange(factor(model, levels = c("no_insulin","full"))) %>%
+  select(Model, `Train N`, `Test N`, `Accuracy (%)`, AUC)
+
+DT::datatable(ml_show, rownames = FALSE, options = list(dom = "tip", pageLength = 5, scrollX = TRUE))
+```
+
+## Row {height=75%}
+
+### TIR Distribution
+```{r}
+#| echo: false
+ggplot(pump, aes(x = pct_70_180)) +
+  geom_histogram(bins = 25, fill = "#93c5fd", color = "white") +
+  geom_vline(xintercept = 70, color = "red", linewidth = 1.2, linetype = "dashed") +
+  annotate("text", x = 70, y = Inf, label = "TIR = 70% threshold", color = "red",
+           vjust = 1.2, hjust = -0.05, size = 3.5) +
+  labs(
+    title = "Distribution of Time-in-Range",
+    subtitle = "Red dashed line indicates the clinical target threshold (TIR ≥ 70%)",
+    x = "TIR 70–180 (%)",
+    y = "Patients"
+  ) +
+  theme_dash
+```
+
+### HbA1c vs TIR
+```{r}
+#| echo: false
+ggplot(pump, aes(x = HbA1c_Screening, y = pct_70_180)) +
+  geom_point(alpha = 0.65, color = "#111827") +
+  geom_smooth(method = "lm", se = TRUE, color = "#2563eb") +
+  geom_hline(yintercept = 70, color = "red", linewidth = 1.2, linetype = "dashed") +
+  labs(
+    title = "HbA1c vs Time-in-Range",
+    subtitle = "Red dashed line indicates the clinical target threshold (TIR ≥ 70%)",
+    x = "HbA1c (screening)",
+    y = "TIR 70–180 (%)"
+  ) +
+  theme_dash
+```

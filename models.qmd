@@ -1,0 +1,70 @@
+---
+title: "Models"
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(here)
+library(readr)
+library(dplyr)
+library(DT)
+
+read_csv_any <- function(filename) {
+  candidates <- c(
+    here("output","tables", filename),
+    here("data","csv", filename)
+  )
+  hit <- candidates[file.exists(candidates)][1]
+  if (is.na(hit)) stop("Missing file: ", filename)
+  read_csv(hit, show_col_types = FALSE)
+}
+
+ml_raw <- read_csv_any("ml_metrics_pump.csv")
+
+ml <- ml_raw %>%
+  mutate(
+    Model = dplyr::recode(model,
+      "no_insulin" = "No-insulin baseline",
+      "full"       = "Full model (includes insulin features)",
+      .default     = model
+    ),
+    `Train N` = n_train,
+    `Test N`  = n_test,
+    `Accuracy (%)` = round(accuracy_pct, 1),
+    AUC = round(auc, 3)
+  ) %>%
+  arrange(factor(model, levels = c("no_insulin","full"))) %>%
+  select(Model, `Train N`, `Test N`, `Accuracy (%)`, AUC)
+```
+
+## Pump Cohort Metrics
+```{r}
+#| echo: false
+DT::datatable(ml, rownames = FALSE, options = list(pageLength = 10, dom = "tip", scrollX = TRUE))
+```
+
+## ROC Curves
+```{=html}
+<div class="roc-big">
+  <figure>
+    <img src="output/figures/roc_no_insulin.png" alt="ROC curve: no-insulin baseline (pump cohort)">
+    <figcaption>No-insulin baseline (pump cohort)</figcaption>
+  </figure>
+
+  <figure>
+    <img src="output/figures/roc_full.png" alt="ROC curve: full model (pump cohort)">
+    <figcaption>Full model (pump cohort)</figcaption>
+  </figure>
+
+  <figure>
+    <img src="output/figures/roc_cgm_only.png" alt="ROC curve: baseline transfer to CGM-only cohort">
+    <figcaption>Baseline transfer to CGM-only cohort</figcaption>
+  </figure>
+</div>
+```

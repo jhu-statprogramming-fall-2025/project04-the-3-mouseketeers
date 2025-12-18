@@ -1,0 +1,2 @@
+n_total,n_scored,threshold,accuracy_pct,auc
+43,43,0.5,53.48837209302325,0.9052287581699346

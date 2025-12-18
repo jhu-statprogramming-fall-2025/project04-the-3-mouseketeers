@@ -1,0 +1,79 @@
+[
+  {
+    "objectID": "tables.html#cgm-summary-cgm.txt",
+    "href": "tables.html#cgm-summary-cgm.txt",
+    "title": "Data Tables",
+    "section": "CGM summary (cgm.txt)",
+    "text": "CGM summary (cgm.txt)"
+  },
+  {
+    "objectID": "tables.html#tdd-summary",
+    "href": "tables.html#tdd-summary",
+    "title": "Data Tables",
+    "section": "TDD summary",
+    "text": "TDD summary"
+  },
+  {
+    "objectID": "tables.html#combined-patient-table",
+    "href": "tables.html#combined-patient-table",
+    "title": "Data Tables",
+    "section": "Combined patient table",
+    "text": "Combined patient table"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Home",
+    "section": "",
+    "text": "This website hosts our final project dashboard (DCLP3 glycemic control prediction), including:\n\nCohort-level summaries\nPatient-level exploration\nML model results (AUC)\nDownloadable / viewable tables"
+  },
+  {
+    "objectID": "index.html#what-this-site-is",
+    "href": "index.html#what-this-site-is",
+    "title": "Home",
+    "section": "",
+    "text": "This website hosts our final project dashboard (DCLP3 glycemic control prediction), including:\n\nCohort-level summaries\nPatient-level exploration\nML model results (AUC)\nDownloadable / viewable tables"
+  },
+  {
+    "objectID": "index.html#how-to-regenerate",
+    "href": "index.html#how-to-regenerate",
+    "title": "Home",
+    "section": "How to regenerate",
+    "text": "How to regenerate\n\nRun the pipeline locally (creates output/tables/ outputs and output/figures/).\nRender the website:\n\nquarto render\n\nCommit/push the docs/ folder for GitHub Pages."
+  },
+  {
+    "objectID": "index.html#made-by-the-three-mouseketeers",
+    "href": "index.html#made-by-the-three-mouseketeers",
+    "title": "Home",
+    "section": "Made by The Three Mouseketeers",
+    "text": "Made by The Three Mouseketeers\n3 Full-time MPHers\n\nConnor Moore\nEimee Co\nJin-sung Sur"
+  },
+  {
+    "objectID": "models.html#roc-curves",
+    "href": "models.html#roc-curves",
+    "title": "Models",
+    "section": "ROC Curves",
+    "text": "ROC Curves\n\n  \n    \n    No-insulin baseline (pump cohort)\n  \n\n  \n    \n    Full model (pump cohort)\n  \n\n  \n    \n    Baseline transfer to CGM-only cohort"
+  },
+  {
+    "objectID": "patient-explorer.html",
+    "href": "patient-explorer.html",
+    "title": "Patient Explorer",
+    "section": "",
+    "text": "Patient selection (default = All patients)"
+  },
+  {
+    "objectID": "patient-explorer.html#daily-tdd-time-series",
+    "href": "patient-explorer.html#daily-tdd-time-series",
+    "title": "Patient Explorer",
+    "section": "Daily TDD (time series)",
+    "text": "Daily TDD (time series)"
+  },
+  {
+    "objectID": "patient-explorer.html#patient-summary-table-all-variables-except-daily-tdd",
+    "href": "patient-explorer.html#patient-summary-table-all-variables-except-daily-tdd",
+    "title": "Patient Explorer",
+    "section": "Patient summary table (all variables except daily TDD)",
+    "text": "Patient summary table (all variables except daily TDD)"
+  }
+]

@@ -1,0 +1,2 @@
+n_patients,n_patient_days,overall_tdd_mean,overall_tdd_median,overall_tdd_sd,overall_tdd_min,overall_tdd_max,overall_tdd_iqr,overall_tdd_q25,overall_tdd_q75,overall_basal_mean,overall_basal_median,overall_bolus_mean,overall_bolus_median,overall_first_date,overall_last_date,overall_tdd_cv
+125,23531,54.01260349792731,48.18296225181053,28.047713930778492,0.9268381285196212,312.0958424562878,32.8358550699633,34.90215504136806,67.73801011133136,25.901671759424893,23.087921997824548,28.110931738502984,24.280000686645508,2017-07-31,2019-03-25,51.92809106462495
