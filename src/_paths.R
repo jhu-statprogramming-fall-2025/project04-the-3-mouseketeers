@@ -1,7 +1,7 @@
 # ============================================
 # src/_paths.R
 # Central, reproducible paths (no hard-coded absolute paths)
-# Outputs: data/csv/
+# Outputs: output/
 # Raw txt: data/raw/Data Files/  (or DCLP3_RAW_DIR override)
 # ============================================
 
@@ -9,8 +9,6 @@ suppressPackageStartupMessages(library(here))
 
 # Outputs (derived CSVs)
 TABLES_DIR <- here("output", "tables")
-
-# Other artifacts
 FIG_DIR    <- here("output", "figures")
 MODELS_DIR <- here("output", "models")
 
@@ -19,6 +17,7 @@ RAW_DIR <- Sys.getenv("DCLP3_RAW_DIR")
 if (!nzchar(RAW_DIR)) {
   RAW_DIR <- here("data", "raw", "Data Files")
 }
+RAW_DIR <- normalizePath(RAW_DIR, winslash = "/", mustWork = FALSE)
 
 ensure_dirs <- function() {
   dir.create(TABLES_DIR, recursive = TRUE, showWarnings = FALSE)
@@ -47,7 +46,7 @@ assert_raw_files <- function(files) {
         RAW_DIR,
         "\nMissing:\n  - ",
         paste(missing, collapse = "\n  - "),
-        "\n\nFix:\n  (A) Put the raw .txt files under data/raw/Data Files/\n  OR\n  (B) Sys.setenv(DCLP3_RAW_DIR='...') to your raw folder.\n"
+        "\n\nFix:\n  (A) Put the raw files under data/raw/Data Files/\n  OR\n  (B) Sys.setenv(DCLP3_RAW_DIR='...') to your raw folder.\n"
       ),
       call. = FALSE
     )

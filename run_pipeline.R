@@ -6,8 +6,25 @@
 # ============================================
 
 suppressPackageStartupMessages(library(here))
+here::i_am("run_pipeline.R")   # forces the root to THIS repo every run
+
 source(here("src", "_paths.R"))
 ensure_dirs()
+
+assert_raw_files(c(
+  "DiabScreening_a.txt",
+  "DiabPhysExam_a.txt",
+  "DiabSocioEcon_a.txt",
+  "DiabLocalHbA1c_a.txt",
+  "MedicalCondition_a.txt",
+  "Medication_a.txt",
+  "Pump_BasalRateChange.txt",
+  "Pump_BolusDelivered.txt",
+  "Pump_CGMGlucoseValue.txt",
+  "InsulinPumpSettings_a.txt",
+  "cgm.txt"  # add the exact filenames your pipeline expects
+))
+
 
 FORCE_REBUILD <- identical(toupper(Sys.getenv("FORCE_REBUILD")), "TRUE")
 
@@ -30,15 +47,15 @@ run_step <- function(label, script_rel_path, outputs = character(0)) {
   cat("STEP:   ", label, "\n")
   cat("SCRIPT: ", script_rel_path, "\n")
   cat("------------------------------------------------------------\n")
-  
+
   if (!FORCE_REBUILD && step_done(outputs)) {
     cat("↪ Skipping (outputs already exist)\n\n")
     return(invisible(TRUE))
   }
-  
+
   script_path <- here::here(script_rel_path)
   if (!file.exists(script_path)) stop("Script not found: ", script_path, call. = FALSE)
-  
+
   tryCatch(
     {
       source(script_path, local = TRUE)
